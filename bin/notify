@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Send push notification using Pushover
+# Usage: notify "Your message here"
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+
+# Load environment variables from .env file
+if [ -f "$PROJECT_ROOT/.env" ]; then
+    export $(grep -v '^#' "$PROJECT_ROOT/.env" | xargs)
+else
+    echo "❌ Error: .env file not found in project root"
+    echo "Please create a .env file with PUSHOVER_TOKEN and PUSHOVER_USER"
+    exit 1
+fi
+
+# Check if credentials are set
+if [ -z "$PUSHOVER_TOKEN" ] || [ -z "$PUSHOVER_USER" ]; then
+    echo "❌ Error: PUSHOVER_TOKEN or PUSHOVER_USER not set in .env file"
+    exit 1
+fi
+
+# Check if message was provided
+if [ $# -eq 0 ]; then
+    echo "Usage: notify \"Your message here\""
+    exit 1
+fi
+
+# Get the message from all arguments
+MESSAGE="$*"
+
+# Send the notification
+response=$(curl -s --form-string "token=$PUSHOVER_TOKEN" \
+    --form-string "user=$PUSHOVER_USER" \
+    --form-string "message=$MESSAGE" \
+    https://api.pushover.net/1/messages.json)
+
+# Check if successful
+if echo "$response" | grep -q '"status":1'; then
+    echo "✅ Notification sent successfully"
+else
+    echo "❌ Failed to send notification"
+    echo "Response: $response"
+    exit 1
+fi
