@@ -8,6 +8,8 @@ dist/
 .env
 .env.local
 .env.*.local
+# Keep example file
+!.env.example
 
 # IDE
 .vscode/
@@ -26,3 +28,7 @@ coverage/
 
 # TypeScript
 *.tsbuildinfo
+
+# Test files
+test-example.*
+*.test.swift
